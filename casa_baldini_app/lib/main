@@ -1,0 +1,16 @@
+import 'dart:convert';
+import 'http://http.dart' as http;
+import 'models/link_utili.dart';
+
+Future<List<LinkUtile>> fetchLinks() async {
+  // Sostituisci con l'URL reale del tuo server
+  // NOTA: Se usi l'emulatore Android, 'localhost' è 10.0.2.2
+  final response = await http.get(Uri.parse('https://tuosito.it/api/links'));
+
+  if (response.statusCode == 200) {
+    List jsonResponse = json.decode(response.body);
+    return jsonResponse.map((data) => LinkUtile.fromJson(data)).toList();
+  } else {
+    throw Exception('Errore nel caricamento dei dati dal database');
+  }
+}
