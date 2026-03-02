@@ -95,7 +95,7 @@ class _LinkUtilePageState extends State<LinkUtilePage> {
                 child: ListTile(
                   leading: CircleAvatar(
                     backgroundImage: NetworkImage(
-                      "https://tuosito.it/assets/img/links/${l.img}",
+                      "https://carlozanieri.it:3333/static/img/index/${l.img}",
                     ),
                   ),
                   title: Text(l.titolo),
