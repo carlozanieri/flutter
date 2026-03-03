@@ -43,30 +43,55 @@ class _HomePageState extends State<HomePage> {
       ),
       // --- AGGIUNGI DA QUI ---
       drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            DrawerHeader(
-              decoration: BoxDecoration(color: Colors.blueGrey[900]),
-              child: const Text(
-                'Casabaldini Menu',
-                style: TextStyle(color: Colors.white, fontSize: 24),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.home),
-              title: const Text('Home'),
-              onTap: () => Navigator.pop(context), // Chiude il menu
-            ),
-            ListTile(
-              leading: const Icon(Icons.info),
-              title: const Text('Info'),
-              onTap: () {
-                // Qui potrai aggiungere una rotta per una pagina "Chi Siamo"
-                Navigator.pop(context);
-              },
-            ),
-          ],
+        child: FutureBuilder<List<MenuEntry>>(
+          future: fetchMenu(), // La funzione che chiamerà l'API /api/v1/menu
+          builder: (context, snapshot) {
+            if (!snapshot.hasData)
+              return const Center(child: CircularProgressIndicator());
+
+            return ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                DrawerHeader(
+                  decoration: BoxDecoration(color: Colors.blueGrey[900]),
+                  child: Text(
+                    "Casabaldini",
+                    style: TextStyle(color: Colors.white, fontSize: 24),
+                  ),
+                ),
+                for (var menu in snapshot.data!)
+                  if (menu.children.isEmpty)
+                    ListTile(
+                      title: Text(menu.titolo),
+                      onTap: () {
+                        /* Naviga al link */
+                      },
+                    )
+                  else
+                    ExpansionTile(
+                      leading: Icon(Icons.folder_open),
+                      title: Text(
+                        menu.titolo,
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      children: menu.children.map((sub) {
+                        return ListTile(
+                          contentPadding: EdgeInsets.only(left: 40),
+                          leading: Icon(
+                            Icons.subdirectory_arrow_right,
+                            size: 18,
+                          ),
+                          title: Text(sub.titolo),
+                          onTap: () {
+                            // Qui useremo la logica per capire dove andare in base al sub.link
+                            Navigator.pop(context);
+                          },
+                        );
+                      }).toList(),
+                    ),
+              ],
+            );
+          },
         ),
       ),
       body: FutureBuilder<List<SliderModel>>(
