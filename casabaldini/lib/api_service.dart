@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'slider_model.dart';
 
 class ApiService {
-  static const String baseUrl = "http://json.casabaldini.eu/api/v1";
+  static const String baseUrl = "https://json.casabaldini.eu/api/v1";
 
   Future<List<SliderModel>> fetchSliders() async {
     try {

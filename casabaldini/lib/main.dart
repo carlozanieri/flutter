@@ -114,7 +114,7 @@ class _HomePageState extends State<HomePage> {
                               borderRadius: BorderRadius.circular(15.0),
                               image: DecorationImage(
                                 image: NetworkImage(
-                                  "http://json.casabaldini.eu/static/img/index/${item.immagineUrl}",
+                                  "https://json.casabaldini.eu/static/img/index/${item.immagineUrl}",
                                 ),
                                 fit: BoxFit.fill,
                               ),
@@ -190,7 +190,7 @@ class DettaglioSlider extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Image.network(
-              "http://json.casabaldini.eu/static/img/index/${item.immagineUrl}",
+              "https://json.casabaldini.eu/static/img/index/${item.immagineUrl}",
               width: double.infinity,
               fit: BoxFit.cover,
             ),
@@ -235,7 +235,7 @@ class DetailPage extends StatelessWidget {
           Hero(
             tag: item.id.toString(),
             child: Image.network(
-              "http://json.casabaldini.eu/static/img/index/${item.immagineUrl}",
+              "https://json.casabaldini.eu/static/img/index/${item.immagineUrl}",
               width: double.infinity,
               fit: BoxFit.contain,
             ),
