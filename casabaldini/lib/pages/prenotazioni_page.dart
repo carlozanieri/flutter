@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class PrenotazioniPage extends StatelessWidget {
   const PrenotazioniPage({super.key});
@@ -32,15 +33,52 @@ class PrenotazioniPage extends StatelessWidget {
           ),
           const Divider(),
           const SizedBox(height: 10),
-          const ListTile(
-            leading: Icon(Icons.phone, color: Colors.green),
-            title: Text("Chiamaci"),
-            subtitle: Text("+39 055 XXX XXXX"),
+          ListTile(
+            leading: CircleAvatar(
+              backgroundColor: Colors.green.withOpacity(0.1), // Sfondo leggero
+              child: const Icon(
+                Icons.phone,
+                color: Colors.green,
+              ), // Icona verde
+            ),
+            title: const Text(
+              "Chiamaci",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            subtitle: const Text("+393319247347"),
+            trailing: const Icon(Icons.chevron_right), // Icona a fine riga
+            onTap: () async {
+              final Uri launchUri = Uri(scheme: 'tel', path: '+393319247347');
+              await launchUrl(launchUri);
+            },
           ),
-          const ListTile(
-            leading: Icon(Icons.email, color: Colors.blue),
-            title: Text("Inviaci una mail"),
-            subtitle: Text("info@casabaldini.eu"),
+          ListTile(
+            leading: CircleAvatar(
+              backgroundColor: Colors.blue.withOpacity(0.1),
+              child: const Icon(Icons.email_outlined, color: Colors.blue),
+            ),
+            title: const Text(
+              "Inviaci una mail",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            subtitle: const Text("bruna.bbaldini@gmail.com"),
+            trailing: const Icon(Icons.send_rounded, size: 20),
+            onTap: () async {
+              final Uri emailUri = Uri(
+                scheme: 'mailto',
+                path: 'bruna.bbaldini@gmail.com',
+                // Puoi anche pre-compilare l'oggetto della mail!
+                queryParameters: {
+                  'subject': 'Richiesta informazioni da App CasaBaldini',
+                },
+              );
+
+              if (await canLaunchUrl(emailUri)) {
+                await launchUrl(emailUri);
+              } else {
+                debugPrint("Impossibile aprire l'app email");
+              }
+            },
           ),
           const Padding(
             padding: EdgeInsets.all(16.0),
