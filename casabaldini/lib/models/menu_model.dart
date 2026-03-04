@@ -30,14 +30,22 @@ class SubMenuEntry {
   final int id;
   final String titolo;
   final String link;
+  final String tipoPage; // Variabile Dart
 
-  SubMenuEntry({required this.id, required this.titolo, required this.link});
+  SubMenuEntry({
+    required this.id,
+    required this.titolo,
+    required this.link,
+    required this.tipoPage,
+  });
 
   factory SubMenuEntry.fromJson(Map<String, dynamic> json) {
     return SubMenuEntry(
       id: json['id'],
       titolo: json['titolo'],
       link: json['link'],
+      // Qui mappiamo la chiave JSON minuscola alla variabile Dart
+      tipoPage: json['tipopage'] ?? 'interna',
     );
   }
 }

@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'api_service.dart';
 import 'slider_model.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:casabaldini/models/menu_model.dart';
+import 'package:casabaldini/pages/prenotazioni_page.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 void main() => runApp(const MyApp());
 
@@ -26,12 +29,18 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   late Future<List<SliderModel>> futureSliders;
-  int _current = 0; // Tiene traccia della foto visualizzata
+  // --- AGGIUNTA PER IL MENU ---
+  late Future<List<MenuEntry>> futureMenu;
+
+  int _current = 0;
   final CarouselSliderController _controller = CarouselSliderController();
+
   @override
   void initState() {
     super.initState();
     futureSliders = ApiService().fetchSliders();
+    // --- INIZIALIZZIAMO IL MENU QUI (così non si chiude con lo slider) ---
+    futureMenu = fetchMenu();
   }
 
   @override
@@ -41,54 +50,63 @@ class _HomePageState extends State<HomePage> {
         title: const Text("Casabaldini"),
         backgroundColor: Colors.blueGrey[900],
       ),
-      // --- AGGIUNGI DA QUI ---
+      // --- IL DRAWER VA QUI, COME PROPRIETÀ DELLO SCAFFOLD ---
       drawer: Drawer(
         child: FutureBuilder<List<MenuEntry>>(
-          future: fetchMenu(), // La funzione che chiamerà l'API /api/v1/menu
+          future: futureMenu, // <--- USA LA VARIABILE, NON LA FUNZIONE
           builder: (context, snapshot) {
-            if (!snapshot.hasData)
+            if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return Center(child: Text("Errore: ${snapshot.error}"));
+            } else if (!snapshot.hasData) {
+              return const Center(child: Text("Nessun dato"));
+            }
 
             return ListView(
               padding: EdgeInsets.zero,
               children: [
                 DrawerHeader(
                   decoration: BoxDecoration(color: Colors.blueGrey[900]),
-                  child: Text(
+                  child: const Text(
                     "Casabaldini",
                     style: TextStyle(color: Colors.white, fontSize: 24),
                   ),
                 ),
-                for (var menu in snapshot.data!)
-                  if (menu.children.isEmpty)
-                    ListTile(
-                      title: Text(menu.titolo),
-                      onTap: () {
-                        /* Naviga al link */
-                      },
-                    )
-                  else
-                    ExpansionTile(
-                      leading: Icon(Icons.folder_open),
-                      title: Text(
-                        menu.titolo,
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      children: menu.children.map((sub) {
-                        return ListTile(
-                          contentPadding: EdgeInsets.only(left: 40),
-                          leading: Icon(
-                            Icons.subdirectory_arrow_right,
-                            size: 18,
-                          ),
-                          title: Text(sub.titolo),
-                          onTap: () {
-                            // Qui useremo la logica per capire dove andare in base al sub.link
-                            Navigator.pop(context);
-                          },
-                        );
-                      }).toList(),
+                // Ciclo sui padri
+                ...snapshot.data!.map((menuPadre) {
+                  return ExpansionTile(
+                    title: Text(
+                      menuPadre.titolo,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
+                    children: menuPadre.children.map((sub) {
+                      return ListTile(
+                        title: Text(sub.titolo),
+                        onTap: () {
+                          Navigator.pop(context); // Chiude il menu
+
+                          // Logica link esterni
+                          if (sub.link.startsWith("http")) {
+                            launchUrl(
+                              Uri.parse(sub.link),
+                              mode: LaunchMode.externalApplication,
+                            );
+                            return;
+                          }
+
+                          // Logica tipo pagina
+                          if (sub.tipoPage == 'modale') {
+                            showModalBottomSheet(
+                              context: context,
+                              builder: (context) => const PrenotazioniPage(),
+                            );
+                          }
+                        },
+                      );
+                    }).toList(),
+                  );
+                }).toList(),
               ],
             );
           },
