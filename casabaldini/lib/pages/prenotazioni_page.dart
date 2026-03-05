@@ -67,7 +67,7 @@ class PrenotazioniPage extends StatelessWidget {
             subtitle: const Text("+390552741209"),
             trailing: const Icon(Icons.chevron_right), // Icona a fine riga
             onTap: () async {
-              final Uri launchUri = Uri(scheme: 'tel', path: '+39552741209');
+              final Uri launchUri = Uri(scheme: 'tel', path: '+390552741209');
               await launchUrl(launchUri);
             },
           ),
