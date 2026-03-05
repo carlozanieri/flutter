@@ -19,8 +19,8 @@ class PrenotazioniPage extends StatelessWidget {
         mainAxisSize: MainAxisSize.min, // Si adatta al contenuto
         children: [
           Container(
-            width: 50,
-            height: 5,
+            width: 55,
+            height: 10,
             decoration: BoxDecoration(
               color: Colors.grey[300],
               borderRadius: BorderRadius.circular(10),
@@ -32,7 +32,7 @@ class PrenotazioniPage extends StatelessWidget {
             style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
           ),
           const Divider(),
-          const SizedBox(height: 10),
+          const SizedBox(height: 20),
           ListTile(
             leading: CircleAvatar(
               backgroundColor: Colors.green.withOpacity(0.1), // Sfondo leggero
@@ -54,6 +54,25 @@ class PrenotazioniPage extends StatelessWidget {
           ),
           ListTile(
             leading: CircleAvatar(
+              backgroundColor: Colors.green.withOpacity(0.1), // Sfondo leggero
+              child: const Icon(
+                Icons.phone,
+                color: Colors.green,
+              ), // Icona verde
+            ),
+            title: const Text(
+              "Chiamaci tel. fisso",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            subtitle: const Text("+390552741209"),
+            trailing: const Icon(Icons.chevron_right), // Icona a fine riga
+            onTap: () async {
+              final Uri launchUri = Uri(scheme: 'tel', path: '+39552741209');
+              await launchUrl(launchUri);
+            },
+          ),
+          ListTile(
+            leading: CircleAvatar(
               backgroundColor: Colors.blue.withOpacity(0.1),
               child: const Icon(Icons.email_outlined, color: Colors.blue),
             ),
@@ -61,23 +80,15 @@ class PrenotazioniPage extends StatelessWidget {
               "Inviaci una mail",
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
-            subtitle: const Text("bruna.bbaldini@gmail.com"),
+            subtitle: const Text("carlo.zanieri@gmail.com"),
             trailing: const Icon(Icons.send_rounded, size: 20),
             onTap: () async {
               final Uri emailUri = Uri(
                 scheme: 'mailto',
-                path: 'bruna.bbaldini@gmail.com',
-                // Puoi anche pre-compilare l'oggetto della mail!
-                queryParameters: {
-                  'subject': 'Richiesta informazioni da App CasaBaldini',
-                },
+                path: 'carlo.zanieri@gmail.com',
+                query: 'subject=Richiesta informazioni dal sito',
               );
-
-              if (await canLaunchUrl(emailUri)) {
-                await launchUrl(emailUri);
-              } else {
-                debugPrint("Impossibile aprire l'app email");
-              }
+              await launchUrl(emailUri);
             },
           ),
           const Padding(
