@@ -43,7 +43,7 @@ class SubMenuEntry {
     return SubMenuEntry(
       id: json['id'],
       titolo: json['titolo'],
-      link: json['link'],
+      link: json['link'].split('/').last,
       // Qui mappiamo la chiave JSON minuscola alla variabile Dart
       tipoPage: json['tipopage'] ?? 'interna',
     );

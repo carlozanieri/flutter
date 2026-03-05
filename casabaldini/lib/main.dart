@@ -1,3 +1,4 @@
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'api_service.dart';
 import 'slider_model.dart';
@@ -5,6 +6,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:casabaldini/models/menu_model.dart';
 import 'package:casabaldini/pages/prenotazioni_page.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'dart:convert';
 
 void main() => runApp(const MyApp());
 
@@ -31,17 +33,17 @@ class _HomePageState extends State<HomePage> {
   late Future<List<SliderModel>> futureSliders;
   // --- AGGIUNTA PER IL MENU ---
   late Future<List<MenuEntry>> futureMenu;
-
-  int _current = 0;
-  final CarouselSliderController _controller = CarouselSliderController();
-
+  String sezioneAttiva = "index";
   @override
   void initState() {
     super.initState();
-    futureSliders = ApiService().fetchSliders();
-    // --- INIZIALIZZIAMO IL MENU QUI (così non si chiude con lo slider) ---
     futureMenu = fetchMenu();
+    // Usiamo la funzione passando "index" per riempire la variabile all'avvio
+    futureSliders = fetchSliders("index");
   }
+
+  int _current = 0;
+  final CarouselSliderController _controller = CarouselSliderController();
 
   @override
   Widget build(BuildContext context) {
@@ -84,19 +86,12 @@ class _HomePageState extends State<HomePage> {
                       return ListTile(
                         title: Text(sub.titolo),
                         onTap: () {
-                          Navigator.pop(context); // Chiude il menu
+                          Navigator.pop(context);
 
-                          // Logica link esterni
-                          if (sub.link.startsWith("http")) {
-                            launchUrl(
-                              Uri.parse(sub.link),
-                              mode: LaunchMode.externalApplication,
-                            );
-                            return;
-                          }
-
-                          // Logica tipo pagina
-                          if (sub.tipoPage == 'modale') {
+                          if (sub.tipoPage == 'interna') {
+                            // AGGIUNGI QUESTA RIGA QUI SOTTO:
+                            aggiornaContenuto(sub.link);
+                          } else if (sub.tipoPage == 'modale') {
                             showModalBottomSheet(
                               context: context,
                               builder: (context) => const PrenotazioniPage(),
@@ -157,7 +152,7 @@ class _HomePageState extends State<HomePage> {
                               borderRadius: BorderRadius.circular(15.0),
                               image: DecorationImage(
                                 image: NetworkImage(
-                                  "https://json.casabaldini.eu/static/img/index/${item.immagineUrl}",
+                                  "https://json.casabaldini.eu/static/img/${sezioneAttiva}/${item.immagineUrl}",
                                 ),
                                 fit: BoxFit.fill,
                               ),
@@ -216,6 +211,13 @@ class _HomePageState extends State<HomePage> {
         },
       ),
     );
+  }
+
+  void aggiornaContenuto(String nuovaSezione) {
+    setState(() {
+      sezioneAttiva = nuovaSezione;
+      futureSliders = fetchSliders(nuovaSezione);
+    });
   }
 }
 
@@ -290,5 +292,19 @@ class DetailPage extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+// Questa è la FUNZIONE (il braccio che prende i dati)
+Future<List<SliderModel>> fetchSliders(String dir) async {
+  final response = await http.get(
+    Uri.parse("https://json.casabaldini.eu/api/v1/slider?dir=$dir"),
+  );
+
+  if (response.statusCode == 200) {
+    List jsonResponse = json.decode(response.body);
+    return jsonResponse.map((data) => SliderModel.fromJson(data)).toList();
+  } else {
+    throw Exception('Errore caricamento slider');
   }
 }
