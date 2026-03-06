@@ -34,6 +34,7 @@ class _HomePageState extends State<HomePage> {
   // --- AGGIUNTA PER IL MENU ---
   late Future<List<MenuEntry>> futureMenu;
   String sezioneAttiva = "index";
+  String titoloPagina = "CasaBaldini";
   @override
   void initState() {
     super.initState();
@@ -49,7 +50,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Casabaldini"),
+        title: Text(titoloPagina),
         backgroundColor: Colors.blueGrey[900],
       ),
       // --- IL DRAWER VA QUI, COME PROPRIETÀ DELLO SCAFFOLD ---
@@ -90,7 +91,7 @@ class _HomePageState extends State<HomePage> {
 
                           if (sub.tipoPage == 'interna') {
                             // AGGIUNGI QUESTA RIGA QUI SOTTO:
-                            aggiornaContenuto(sub.link);
+                            aggiornaContenuto(sub.link, sub.titolo);
                           } else if (sub.tipoPage == 'modale') {
                             showModalBottomSheet(
                               context: context,
@@ -213,9 +214,10 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void aggiornaContenuto(String nuovaSezione) {
+  void aggiornaContenuto(String nuovaSezione, String nuovoTitolo) {
     setState(() {
       sezioneAttiva = nuovaSezione;
+      titoloPagina = nuovoTitolo; // Aggiorniamo il titolo
       futureSliders = fetchSliders(nuovaSezione);
     });
   }
