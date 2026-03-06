@@ -45,10 +45,10 @@ class PrenotazioniPage extends StatelessWidget {
               "Chiamaci",
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
-            subtitle: const Text("+393319247347"),
+            subtitle: const Text("+393207060411"),
             trailing: const Icon(Icons.chevron_right), // Icona a fine riga
             onTap: () async {
-              final Uri launchUri = Uri(scheme: 'tel', path: '+393319247347');
+              final Uri launchUri = Uri(scheme: 'tel', path: '+393207060411');
               await launchUrl(launchUri);
             },
           ),

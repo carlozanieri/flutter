@@ -5,6 +5,7 @@ import 'slider_model.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:casabaldini/models/menu_model.dart';
 import 'package:casabaldini/pages/prenotazioni_page.dart';
+import 'package:casabaldini/pages/dove_mangiare_page.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:convert';
 
@@ -93,10 +94,21 @@ class _HomePageState extends State<HomePage> {
                             // AGGIUNGI QUESTA RIGA QUI SOTTO:
                             aggiornaContenuto(sub.link, sub.titolo);
                           } else if (sub.tipoPage == 'modale') {
-                            showModalBottomSheet(
-                              context: context,
-                              builder: (context) => const PrenotazioniPage(),
-                            );
+                            if (sub.link.contains('dovemangiare')) {
+                              showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                builder: (context) => const DoveMangiarePage(),
+                              );
+                            } else if (sub.link.contains('prenotazioni')) {
+                              {
+                                showModalBottomSheet(
+                                  context: context,
+                                  builder: (context) =>
+                                      const PrenotazioniPage(),
+                                );
+                              }
+                            }
                           }
                         },
                       );
