@@ -4,6 +4,7 @@ import 'api_service.dart';
 import 'slider_model.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:casabaldini/models/menu_model.dart';
+import 'package:casabaldini/models/link_utili_model.dart';
 import 'package:casabaldini/pages/prenotazioni_page.dart';
 import 'package:casabaldini/pages/dove_mangiare_page.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -32,6 +33,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   late Future<List<SliderModel>> futureSliders;
+  late Future<List> futureLinks;
   // --- AGGIUNTA PER IL MENU ---
   late Future<List<MenuEntry>> futureMenu;
   String sezioneAttiva = "index";
@@ -42,6 +44,7 @@ class _HomePageState extends State<HomePage> {
     futureMenu = fetchMenu();
     // Usiamo la funzione passando "index" per riempire la variabile all'avvio
     futureSliders = fetchSliders("index");
+    futureLinks = fetchLinks();
   }
 
   int _current = 0;
@@ -223,6 +226,7 @@ class _HomePageState extends State<HomePage> {
           return const Center(child: Text("Nessun dato"));
         },
       ),
+      bottomNavigationBar: FooterLinks(links: futureLinks),
     );
   }
 
@@ -232,6 +236,77 @@ class _HomePageState extends State<HomePage> {
       titoloPagina = nuovoTitolo; // Aggiorniamo il titolo
       futureSliders = fetchSliders(nuovaSezione);
     });
+  }
+}
+
+class FooterLinks extends StatelessWidget {
+  final Future<List> links;
+
+  const FooterLinks({super.key, required this.links});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 60,
+      color: Colors.blueGrey[900],
+      // Usiamo un SafeArea per evitare che sui telefoni nuovi i link finiscano sotto la "barretta" di sistema
+      child: SafeArea(
+        child: FutureBuilder<List>(
+          future: links,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (snapshot.hasError || !snapshot.hasData) {
+              return const SizedBox();
+            }
+
+            return ListView.builder(
+              scrollDirection: Axis.horizontal,
+              // Fondamentale: non serve shrinkWrap qui, e aggiungiamo physics per lo scorrimento
+              physics: const AlwaysScrollableScrollPhysics(),
+              itemCount: snapshot.data!.length,
+              itemBuilder: (context, index) {
+                final l = snapshot.data![index];
+                return InkWell(
+                  onTap: () => launchUrl(
+                    Uri.parse(l.link),
+                    mode: LaunchMode.externalApplication,
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Image.network(
+                          "https://json.casabaldini.eu/static/img/links/${l.img}",
+                          height: 30,
+                          errorBuilder: (context, error, stackTrace) =>
+                              const Icon(
+                                Icons.link,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          l.titolo,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            );
+          },
+        ),
+      ),
+    );
   }
 }
 
@@ -320,5 +395,18 @@ Future<List<SliderModel>> fetchSliders(String dir) async {
     return jsonResponse.map((data) => SliderModel.fromJson(data)).toList();
   } else {
     throw Exception('Errore caricamento slider');
+  }
+}
+
+Future<List> fetchLinks() async {
+  final response = await http.get(
+    Uri.parse("https://json.casabaldini.eu/api/v1/links"),
+  );
+
+  if (response.statusCode == 200) {
+    List jsonResponse = json.decode(response.body);
+    return jsonResponse.map((data) => LinkUtile.fromJson(data)).toList();
+  } else {
+    throw Exception('Errore caricamento links');
   }
 }
