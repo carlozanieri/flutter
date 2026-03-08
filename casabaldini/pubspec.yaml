@@ -37,7 +37,7 @@ dependencies:
   http: ^1.6.0
   carousel_slider: ^5.1.2
   url_launcher: ^6.3.2
-
+  marquee: ^2.2.3
 dev_dependencies:
   flutter_test:
     sdk: flutter

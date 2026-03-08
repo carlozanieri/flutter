@@ -9,6 +9,7 @@ import 'package:casabaldini/pages/prenotazioni_page.dart';
 import 'package:casabaldini/pages/dove_mangiare_page.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:convert';
+import 'package:marquee/marquee.dart';
 
 void main() => runApp(const MyApp());
 
@@ -248,60 +249,50 @@ class FooterLinks extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 60,
+      width: double.infinity,
       color: Colors.blueGrey[900],
-      // Usiamo un SafeArea per evitare che sui telefoni nuovi i link finiscano sotto la "barretta" di sistema
-      child: SafeArea(
+      // 1. ClipRect taglia visivamente tutto ciò che esce dai 60px di altezza
+      child: ClipRect(
         child: FutureBuilder<List>(
           future: links,
           builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (snapshot.hasError || !snapshot.hasData) {
-              return const SizedBox();
-            }
+            if (!snapshot.hasData) return const SizedBox();
 
-            return ListView.builder(
-              scrollDirection: Axis.horizontal,
-              // Fondamentale: non serve shrinkWrap qui, e aggiungiamo physics per lo scorrimento
-              physics: const AlwaysScrollableScrollPhysics(),
-              itemCount: snapshot.data!.length,
-              itemBuilder: (context, index) {
-                final l = snapshot.data![index];
-                return InkWell(
-                  onTap: () => launchUrl(
-                    Uri.parse(l.link),
-                    mode: LaunchMode.externalApplication,
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Image.network(
-                          "https://json.casabaldini.eu/static/img/links/${l.img}",
-                          height: 30,
-                          errorBuilder: (context, error, stackTrace) =>
-                              const Icon(
-                                Icons.link,
-                                color: Colors.white,
-                                size: 20,
-                              ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          l.titolo,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
+            // 2. OverflowBox dice a Flutter: "Ignora la larghezza dello schermo,
+            // lascia che la Row sia larga anche 5000px senza lamentarti"
+            return OverflowBox(
+              maxWidth: double.infinity,
+              alignment: Alignment.centerLeft,
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                child: Row(
+                  children: snapshot.data!.map((l) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                      child: Row(
+                        children: [
+                          Image.network(
+                            "https://json.casabaldini.eu/static/img/links/${l.img}",
+                            height: 30,
+                            errorBuilder: (context, error, stackTrace) =>
+                                const Icon(Icons.link, color: Colors.white),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
+                          const SizedBox(width: 10),
+                          Text(
+                            l.titolo,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
             );
           },
         ),
@@ -369,7 +360,7 @@ class DetailPage extends StatelessWidget {
           Hero(
             tag: item.id.toString(),
             child: Image.network(
-              "https://json.casabaldini.eu/static/img/index/${item.immagineUrl}",
+              "https://json.casabaldini.eu/static/img/links/${item.immagineUrl}",
               width: double.infinity,
               fit: BoxFit.contain,
             ),
