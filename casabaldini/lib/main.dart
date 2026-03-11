@@ -10,6 +10,7 @@ import 'package:casabaldini/pages/dove_mangiare_page.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:convert';
 import 'package:marquee/marquee.dart';
+import 'dart:async';
 
 void main() => runApp(const MyApp());
 
@@ -118,7 +119,7 @@ class _HomePageState extends State<HomePage> {
                       );
                     }).toList(),
                   );
-                }).toList(),
+                }),
               ],
             );
           },
@@ -169,7 +170,7 @@ class _HomePageState extends State<HomePage> {
                               borderRadius: BorderRadius.circular(15.0),
                               image: DecorationImage(
                                 image: NetworkImage(
-                                  "https://json.casabaldini.eu/static/img/${sezioneAttiva}/${item.immagineUrl}",
+                                  "https://json.casabaldini.eu/static/img/$sezioneAttiva/${item.immagineUrl}",
                                 ),
                                 fit: BoxFit.fill,
                               ),
@@ -240,59 +241,114 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-class FooterLinks extends StatelessWidget {
+class FooterLinks extends StatefulWidget {
   final Future<List> links;
-
   const FooterLinks({super.key, required this.links});
 
   @override
+  State<FooterLinks> createState() => _FooterLinksState();
+}
+
+class _FooterLinksState extends State<FooterLinks> {
+  late ScrollController _scrollController;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _startScrolling());
+  }
+
+  void _startScrolling() {
+    _timer = Timer.periodic(const Duration(milliseconds: 25), (timer) {
+      if (_scrollController.hasClients) {
+        double maxScroll = _scrollController.position.maxScrollExtent;
+        double currentScroll = _scrollController.position.pixels;
+
+        if (currentScroll >= maxScroll) {
+          _scrollController.jumpTo(0);
+        } else {
+          _scrollController.jumpTo(currentScroll + 1);
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 60,
-      width: double.infinity,
-      color: Colors.blueGrey[900],
-      // 1. ClipRect taglia visivamente tutto ciò che esce dai 60px di altezza
-      child: ClipRect(
+    // Usiamo SafeArea per evitare che i link finiscano sotto i tasti del cellulare
+    return SafeArea(
+      child: Container(
+        height: 60,
+        color: Colors.blueGrey[900],
         child: FutureBuilder<List>(
-          future: links,
+          future: widget.links,
           builder: (context, snapshot) {
             if (!snapshot.hasData) return const SizedBox();
 
-            // 2. OverflowBox dice a Flutter: "Ignora la larghezza dello schermo,
-            // lascia che la Row sia larga anche 5000px senza lamentarti"
-            return OverflowBox(
-              maxWidth: double.infinity,
-              alignment: Alignment.centerLeft,
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                physics: const BouncingScrollPhysics(),
-                child: Row(
-                  children: snapshot.data!.map((l) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                      child: Row(
-                        children: [
-                          Image.network(
-                            "https://json.casabaldini.eu/static/img/links/${l.img}",
-                            height: 30,
-                            errorBuilder: (context, error, stackTrace) =>
-                                const Icon(Icons.link, color: Colors.white),
-                          ),
-                          const SizedBox(width: 10),
-                          Text(
-                            l.titolo,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                            ),
-                          ),
-                        ],
-                      ),
+            final listaDoppia = [...snapshot.data!, ...snapshot.data!];
+
+            return ListView.builder(
+              controller: _scrollController,
+              scrollDirection: Axis.horizontal,
+              // Fondamentale: disabilitiamo il trascinamento manuale per non
+              // andare in conflitto con il Timer e permettere il Click
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: listaDoppia.length,
+              itemBuilder: (context, index) {
+                final l = listaDoppia[index];
+
+                // Usiamo GestureDetector invece di InkWell, a volte è più reattivo nel Marquee
+                return GestureDetector(
+                  behavior:
+                      HitTestBehavior.opaque, // Rende cliccabile tutta l'area
+                  onTap: () {
+                    print("Cliccato su: ${l.titolo}"); // Verifica nel debug
+                    launchUrl(
+                      Uri.parse(l.link),
+                      mode: LaunchMode.externalApplication,
                     );
-                  }).toList(),
-                ),
-              ),
+                  },
+                  child: Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Image.network(
+                              "https://json.casabaldini.eu/static/img/links/${l.img}",
+                              height: 30,
+                              errorBuilder: (ctx, err, stack) =>
+                                  const Icon(Icons.link, color: Colors.white),
+                            ),
+                            const SizedBox(width: 10),
+                            Text(
+                              l.titolo,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Text(
+                        " • ",
+                        style: TextStyle(color: Colors.white38),
+                      ),
+                    ],
+                  ),
+                );
+              },
             );
           },
         ),

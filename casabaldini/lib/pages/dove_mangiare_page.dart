@@ -10,6 +10,7 @@ class DoveMangiarePage extends StatelessWidget {
       height: MediaQuery.of(context).size.height * 0.8,
       padding: const EdgeInsets.all(16.0),
       color: Colors.black87,
+
       child: Column(
         children: [
           Text(
