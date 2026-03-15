@@ -9,7 +9,6 @@ import 'package:casabaldini/pages/prenotazioni_page.dart';
 import 'package:casabaldini/pages/dove_mangiare_page.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:convert';
-import 'package:marquee/marquee.dart';
 import 'dart:async';
 
 void main() => runApp(const MyApp());
@@ -57,7 +56,7 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(titoloPagina),
-        backgroundColor: Colors.blueGrey[900],
+        backgroundColor: const Color.fromARGB(255, 4, 58, 85),
       ),
       // --- IL DRAWER VA QUI, COME PROPRIETÀ DELLO SCAFFOLD ---
       drawer: Drawer(
